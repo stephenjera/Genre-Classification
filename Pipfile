@@ -8,6 +8,7 @@ name = "pypi"
 [dev-packages]
 ipykernel = "*"
 dvc = "*"
+dvc-s3 = "*"
 
 [requires]
 python_version = "3.10"
