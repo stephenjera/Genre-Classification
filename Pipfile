@@ -4,11 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+librosa = "*"
+torch = "*"
+scikit-learn = "*"
+soundfile = "*"
 
 [dev-packages]
 ipykernel = "*"
 dvc = "*"
 dvc-s3 = "*"
+matplotlib = "*"
 
 [requires]
 python_version = "3.10"
