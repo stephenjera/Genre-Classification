@@ -8,6 +8,8 @@ librosa = "*"
 torch = "*"
 scikit-learn = "*"
 soundfile = "*"
+mlflow = "*"
+dagshub = "*"
 
 [dev-packages]
 ipykernel = "*"
