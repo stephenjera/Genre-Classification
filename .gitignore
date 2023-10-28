@@ -1,6 +1,6 @@
 data
 .DS_Store
-
+notebooks/data.json
 
 
 # Byte-compiled / optimized / DLL files
