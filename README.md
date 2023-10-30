@@ -85,20 +85,34 @@ dvc pull
 
 ## Installing Pytorch 
 
-To create a conda enviornment install Anaconda. Open a new terminal and navigate to the root directory and run the following code:
-```shell
-conda deactivate
-```
+To create a conda enviornment install Anaconda. Open a new anaconda terminal and navigate to the root directory and run the following code:
+
 ```shell
 conda env create -f environment.yaml
 ```
 ```shell
-conda activate <environment_name>
+conda activate genre-classification
 ```
 
-The project used python 3.11.5 to save the conda env use and then remove the prefix section at the end
+To create the environment from scratch run the following:
+
+```shell
+conda create -n genre-classification python=3.10.11
+```
+
+```shell
+conda activate genre-classification
+```
+
+```shell
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+```
+
+
+To save the conda env use 
 ```shell
 conda env export > environment.yaml
 ```
+and then remove the prefix section at the end
 
 CUDA version 11.8 was used, a tutorial on how to set up the CUDA toolkit can be found [here](https://www.youtube.com/watch?v=r7Am-ZGMef8)
