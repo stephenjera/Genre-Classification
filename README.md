@@ -85,6 +85,17 @@ dvc pull
 
 ## Installing Pytorch 
 
+To create a conda enviornment install Anaconda. Open a new terminal and navigate to the root directory and run the following code:
+```shell
+conda deactivate
+```
+```shell
+conda env create -f environment.yaml
+```
+```shell
+conda activate <environment_name>
+```
+
 The project used python 3.11.5 to save the conda env use and then remove the prefix section at the end
 ```shell
 conda env export > environment.yaml
