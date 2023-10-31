@@ -4,7 +4,7 @@ import numpy as np
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torchmetrics
 from torch.utils.data import Dataset, DataLoader
 from pathlib import Path
 from sklearn.model_selection import train_test_split
@@ -25,23 +25,21 @@ class MFCCDataset(Dataset):
         return mfccs, label
 
 
-class LSTMGenreModel(pl.LightningModule):
+class MFCCDataModule(pl.LightningDataModule):
     def __init__(
         self,
-        input_size,
-        hidden_size,
-        num_layers,
-        num_classes,
+        dataset_path,
         batch_size,
-        learning_rate,
-        dataset_path: str | Path,
+        num_workers,
+        test_size,
+        validation_size,
     ):
         super().__init__()
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_size, num_classes)
         self.dataset_path = dataset_path
         self.batch_size = batch_size
-        self.learning_rate = learning_rate
+        self.num_workers = num_workers
+        self.test_size = test_size
+        self.validation_size = validation_size
 
     @staticmethod
     def load_data(dataset_path):
@@ -51,7 +49,6 @@ class LSTMGenreModel(pl.LightningModule):
             :return X (ndarray): Inputs
             :return y (ndarray): Targets
         """
-
         with open(dataset_path, "r") as fp:
             print("Loading Data")
             data = json.load(fp)
@@ -82,7 +79,7 @@ class LSTMGenreModel(pl.LightningModule):
 
         return X_train, y_train, X_test, y_test, X_val, y_val
 
-    def prepare_data(self):
+    def setup(self, stage=None):
         # Load data
         self.X, self.y, _ = self.load_data(self.dataset_path)
 
@@ -98,7 +95,12 @@ class LSTMGenreModel(pl.LightningModule):
             self.y_val,
             self.X_test,
             self.y_test,
-        ) = self.prepare_datasets(self.X, self.y, 0.25, 0.2)
+        ) = self.prepare_datasets(
+            self.X,
+            self.y,
+            self.test_size,
+            self.validation_size,
+        )
 
         # Create dataset objects
         self.train_dataset = MFCCDataset(self.X_train, self.y_train)
@@ -114,42 +116,65 @@ class LSTMGenreModel(pl.LightningModule):
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size)
 
-    def forward(self, x):
-        # x shape: (batch, seq_len, input_size)
-        out, (hn, cn) = self.lstm(x)
-        # out shape: (batch, seq_len, hidden_size)
 
-        # Take the final output and classify
+class LSTMGenreModel(pl.LightningModule):
+    def __init__(
+        self,
+        input_size,
+        hidden_size,
+        num_layers,
+        num_classes,
+        learning_rate,
+        dataset_path: str | Path,
+    ):
+        super().__init__()
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, num_classes)
+        self.loss_fn = nn.CrossEntropyLoss()
+        self.dataset_path = dataset_path
+        self.learning_rate = learning_rate
+        self.accuracy = torchmetrics.Accuracy(
+            task="multiclass", num_classes=num_classes
+        )
+        self.f1_score = torchmetrics.F1Score(task="multiclass", num_classes=num_classes)
+
+    def forward(self, x):
+        out, (hn, cn) = self.lstm(x)
         out = self.fc(out[:, -1, :])
-        # out shape: (batch, num_classes)
         return out
 
-    def training_step(self, batch):
+    def _common_step(self, batch):
         mfccs, labels = batch
         outputs = self(mfccs)
-        loss = nn.CrossEntropyLoss()(outputs, labels)
-        self.log("train_loss", loss)
-        return loss
+        loss = self.loss_fn(outputs, labels)
+        return loss, outputs, labels
+
+    def training_step(self, batch):
+        loss, outputs, labels = self._common_step(batch)
+        accuracy = self.accuracy(outputs, labels)
+        f1_score = self.f1_score(outputs, labels)
+        self.log_dict(
+            {
+                "train_loss": loss,
+                "train_accuracy": accuracy,
+                "train_f1_score": f1_score,
+            },
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+        )
+        return {"loss": loss, "outputs": outputs, "labels": labels}
 
     def validation_step(self, batch):
-        mfccs, labels = batch
-        outputs = self(mfccs)
-        loss = nn.CrossEntropyLoss()(outputs, labels)
-        print(loss)
+        loss, outputs, labels = self._common_step(batch)
         self.log("val_loss", loss)
+        return loss
 
     # Test step
     def test_step(self, batch):
-        X, y = batch
-
-        # Forward pass
-        y_hat = self(X)
-        loss = F.cross_entropy(y_hat, y)
-
-        y_pred = torch.argmax(y_hat, dim=1)
-        accuracy = (y_pred == y).float().mean()
+        loss, outputs, labels = self._common_step(batch)
         self.log("test_loss", loss)
-        self.log("test_accuracy", accuracy)
+        return loss
 
     def save_checkpoint(self, checkpoint_path, filename="checkpoint.ckpt"):
         torch.save(self.state_dict(), os.path.join(checkpoint_path, filename))
