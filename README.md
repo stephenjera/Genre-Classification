@@ -80,7 +80,7 @@ Pull Changes
 git pull origin master
 ```
 ```shell
-dvc pull
+dvc pull -r origin
 ```
 
 ## Installing Pytorch 
