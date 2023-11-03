@@ -1,7 +1,11 @@
 data
 .DS_Store
-notebooks/data.json
-
+**/data.json
+lightning_logs
+mlruns
+checkpoint.ckpt
+tb_runs
+notebooks/runs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
