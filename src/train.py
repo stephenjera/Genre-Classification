@@ -3,7 +3,7 @@ import pytorch_lightning as pl
 import mlflow
 import dagshub
 import torch
-from model import LSTMGenreModel, MFCCDataModule
+from genre_classifier.model import LSTMGenreModel, MFCCDataModule
 from pathlib import Path
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.profilers import PyTorchProfiler
