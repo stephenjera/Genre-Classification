@@ -116,3 +116,26 @@ conda env export > environment.yaml
 and then remove the prefix section at the end
 
 CUDA version 11.8 was used, a tutorial on how to set up the CUDA toolkit can be found [here](https://www.youtube.com/watch?v=r7Am-ZGMef8)
+
+## MLflow
+
+Create local testing server
+```shell
+mlflow server
+```
+
+Set environment variables
+```powershell
+Set-Item -Path Env:MLFLOW_TRACKING_URI -Value ($Env:MLFLOW_TRACKING_URI + "https://dagshub.com/stephenjera/Genre-Classification.mlflow")
+```
+serve model from remote
+```
+mlflow models serve -m "models:/genre-classifier/<version>" --port 1234 --no-conda
+```
+
+## Pytest 
+
+Run in src folder  
+```shell 
+python -m pytest
+```

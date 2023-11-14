@@ -11,12 +11,14 @@ soundfile = "*"
 mlflow = "*"
 dagshub = "*"
 tensorboard = "*"
+pytorch-lightning = "*"
 
 [dev-packages]
 ipykernel = "*"
 dvc = "*"
 dvc-s3 = "*"
 matplotlib = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.10"
