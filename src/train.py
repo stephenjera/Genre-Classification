@@ -16,7 +16,7 @@ INPUT_SIZE = 13  # number of MFCC coefficients
 HIDDEN_SIZE = 128
 NUM_LAYERS = 2
 BATCH_SIZE = 64
-NUM_EPOCHS = 50
+NUM_EPOCHS = 55
 LEARNING_RATE = 1e-3
 
 NUM_WORKERS = 1
@@ -48,13 +48,13 @@ dm = MFCCDataModule(
 )
 
 if __name__ == "__main__":
-    dagshub.init(
-        repo_owner="stephenjera",
-        repo_name="Genre-Classification",
-        mlflow=True,
-    )
-    # mlflow.set_tracking_uri("http://localhost:5000")
-    mlflow.pytorch.autolog()
+    # dagshub.init(
+    #     repo_owner="stephenjera",
+    #     repo_name="Genre-Classification",
+    #     mlflow=True,
+    # )
+    mlflow.set_tracking_uri("http://localhost:5000")
+    mlflow.pytorch.autolog(log_models=False)
 
     # logger = TensorBoardLogger("tb_runs")
     profiler = PyTorchProfiler(
@@ -72,31 +72,23 @@ if __name__ == "__main__":
         max_epochs=NUM_EPOCHS,
         log_every_n_steps=25,
     )
-    trainer.fit(model, dm)
-    trainer.validate(model, dm)
-    trainer.test(model, dm)
-    # trainer.save_checkpoint("checkpoint.ckpt")
+    with mlflow.start_run():
+        trainer.fit(model, dm)
+        trainer.validate(model, dm)
+        trainer.test(model, dm)
 
-    input_tensor = torch.rand(1, 259, 13)
-    predictions = model(input_tensor)
-    input_np = input_tensor.numpy()
-    predictions_np = predictions.detach().numpy()
-    signature = infer_signature(input_np, predictions_np)
+        input_tensor = torch.rand(1, 259, 13)
+        predictions = model(input_tensor)
+        input_np = input_tensor.numpy()
+        predictions_np = predictions.detach().numpy()
+        signature = infer_signature(input_np, predictions_np)
 
-    mlflow.pytorch.log_model(
-        pytorch_model=model,
-        artifact_path=MODEL_NAME,
-        conda_env=str(CONDA_PATH),
-        code_paths=[str(CODE_PATH)],
-        signature=signature,
-        registered_model_name=MODEL_NAME,
-        await_registration_for=0,
-    )
-
-    active_run = mlflow.active_run()
-    if active_run is not None:
-        print(active_run.info)
-        run_id = active_run.info.run_id
-    else:
-        print("No active run")
-    # mlflow.register_model(f"runs:/{run_id}/{ARTIFACT_PATH}", MODEL_NAME)
+        mlflow.pytorch.log_model(
+            pytorch_model=model,
+            artifact_path=MODEL_NAME,
+            conda_env=str(CONDA_PATH),
+            code_paths=[str(CODE_PATH)],
+            signature=signature,
+            registered_model_name=MODEL_NAME,
+            await_registration_for=0,
+        )
