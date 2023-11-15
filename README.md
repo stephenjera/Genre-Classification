@@ -19,7 +19,7 @@ The [GTZAN Genre Collection](https://www.kaggle.com/datasets/andradaolteanu/gtza
 
 The raw .wav files are preprocessed to extract Mel-Frequency Cepstral Coefficients (MFCCs) which represent the short-term power spectrum of the audio.
 
-## Model 
+## Model
 
 A LSTM neural network implemented in PyTorch is used for sequence classification. The model architecture consists of:
 
@@ -31,65 +31,81 @@ A LSTM neural network implemented in PyTorch is used for sequence classification
 The MFCC audio features are fed into the LSTM layer, and the output is a predicted genre label.
 
 ## Tensorboard
+
 The project uses Tensorboard to visualise some graphs to see these in the root directory run after code executuion then naviagte to localhos:6006 in a browser
-```
+
+```shell
 tensorboard --logdir=notebooks/runs
 ```
 
-## DVC 
+## DVC
+
 [DVC documentation](https://dvc.org/doc/start)
 
 Install dvc and dvc-s3
+
 ```shell
 pipenv install dvc dvc-s3 -d
 ```
 
 Initialize DVC in your local project directory
+
 ```shell
 dvc init
 ```
+
 This will create a .dvc directory that will store all the DVC related files.
 
 Add Data to DVC
+
 ```shell
 dvc add data/.
 ```
+
 This will create a .dvc file that tracks your data.
 
 To add a remote go to the repository in DagsHub and select the dvc option and follow the instructions.
 
 Commit Changes
+
 ```shell
 git add .  git commit -m "message"
 ```
+
 ```shell
 git commit -m "message"
 ```
 
 Push to DagsHub
+
 ```shell
 git push origin master
 ```
+
 Push Data to DVC Remote
+
 ```shell
 dvc push -r origin
 ```
 
 Pull Changes
+
 ```shell
 git pull origin master
 ```
+
 ```shell
 dvc pull -r origin
 ```
 
-## Installing Pytorch 
+## Installing Pytorch
 
 To create a conda enviornment install Anaconda. Open a new anaconda terminal and navigate to the root directory and run the following code:
 
 ```shell
 conda env create -f environment.yaml
 ```
+
 ```shell
 conda activate genre-classification
 ```
@@ -108,11 +124,12 @@ conda activate genre-classification
 conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
 ```
 
+To save the conda env use
 
-To save the conda env use 
 ```shell
 conda env export > environment.yaml
 ```
+
 and then remove the prefix section at the end
 
 CUDA version 11.8 was used, a tutorial on how to set up the CUDA toolkit can be found [here](https://www.youtube.com/watch?v=r7Am-ZGMef8)
@@ -120,22 +137,27 @@ CUDA version 11.8 was used, a tutorial on how to set up the CUDA toolkit can be 
 ## MLflow
 
 Create local testing server
+
 ```shell
 mlflow server
 ```
 
 Set environment variables
+
 ```powershell
 Set-Item -Path Env:MLFLOW_TRACKING_URI -Value ($Env:MLFLOW_TRACKING_URI + "https://dagshub.com/stephenjera/Genre-Classification.mlflow")
 ```
+
 serve model from remote
-```
+
+```shell
 mlflow models serve -m "models:/genre-classifier/<version>" --port 1234 --no-conda
 ```
 
-## Pytest 
+## Pytest
 
 Run in src folder  
-```shell 
+
+```shell
 python -m pytest
 ```

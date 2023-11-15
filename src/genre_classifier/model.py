@@ -120,11 +120,11 @@ class MFCCDataModule(pl.LightningDataModule):
 class LSTMGenreModel(pl.LightningModule):
     def __init__(
         self,
-        input_size,
-        hidden_size,
-        num_layers,
-        num_classes,
-        learning_rate,
+        input_size: int,
+        hidden_size: int,
+        num_layers: int,
+        num_classes: int,
+        learning_rate: float,
         dataset_path: str | Path,
     ):
         super().__init__()
