@@ -9,14 +9,13 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.profilers import PyTorchProfiler
 from mlflow.models.signature import infer_signature
 
-
 # Hyperparameters
 NUM_CLASSES = 10  # number of genres
 INPUT_SIZE = 13  # number of MFCC coefficients
 HIDDEN_SIZE = 128
 NUM_LAYERS = 2
 BATCH_SIZE = 64
-NUM_EPOCHS = 55
+NUM_EPOCHS = 5
 LEARNING_RATE = 1e-3
 
 NUM_WORKERS = 1
