@@ -3,50 +3,39 @@ import pytorch_lightning as pl
 import mlflow
 import dagshub
 import torch
+import hydra
+from hydra.core.config_store import ConfigStore
+from config import GenreClassifierConfig
 from genre_classifier.model import LSTMGenreModel, MFCCDataModule
 from pathlib import Path
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.profilers import PyTorchProfiler
 from mlflow.models.signature import infer_signature
 
-# Hyperparameters
-NUM_CLASSES = 10  # number of genres
-INPUT_SIZE = 13  # number of MFCC coefficients
-HIDDEN_SIZE = 128
-NUM_LAYERS = 2
-BATCH_SIZE = 64
-NUM_EPOCHS = 5
-LEARNING_RATE = 1e-3
 
-NUM_WORKERS = 1
-VALIDATION_SIZE = 0.25
-TEST_SIZE = 0.2
-DATASET_PATH = Path.cwd().parent / "data" / "processed" / "genres_mfccs.json"
+cs = ConfigStore.instance()
+cs.store(name="genre_config", node=GenreClassifierConfig)
 
-ARTIFACT_PATH = "genre_classifier"
-MODEL_NAME = "genre-classifier"
 
-CONDA_PATH = Path.cwd().parent / "environment.yaml"
-CODE_PATH = Path.cwd() / "genre_classifier"
+@hydra.main(config_path="config", config_name="config.yaml")
+def main(cfg: GenreClassifierConfig):
+    model = LSTMGenreModel(
+        input_size=cfg.hyperparameters.input_size,
+        hidden_size=cfg.hyperparameters.hidden_size,
+        num_layers=cfg.hyperparameters.num_layers,
+        num_classes=cfg.hyperparameters.num_classes,
+        learning_rate=cfg.hyperparameters.learning_rate,
+        dataset_path=Path(cfg.paths.dataset_path),
+    )
 
-model = LSTMGenreModel(
-    input_size=INPUT_SIZE,
-    hidden_size=HIDDEN_SIZE,
-    num_layers=NUM_LAYERS,
-    num_classes=NUM_CLASSES,
-    learning_rate=LEARNING_RATE,
-    dataset_path=DATASET_PATH,
-)
+    dm = MFCCDataModule(
+        dataset_path=Path(cfg.paths.dataset_path),
+        batch_size=cfg.hyperparameters.batch_size,
+        num_workers=cfg.params.num_workers,
+        validation_size=cfg.params.validation_size,
+        test_size=cfg.params.test_size,
+    )
 
-dm = MFCCDataModule(
-    dataset_path=DATASET_PATH,
-    batch_size=BATCH_SIZE,
-    num_workers=NUM_WORKERS,
-    validation_size=VALIDATION_SIZE,
-    test_size=TEST_SIZE,
-)
-
-if __name__ == "__main__":
     # dagshub.init(
     #     repo_owner="stephenjera",
     #     repo_name="Genre-Classification",
@@ -68,7 +57,7 @@ if __name__ == "__main__":
     trainer = pl.Trainer(
         # profiler=profiler,
         # logger=logger,
-        max_epochs=NUM_EPOCHS,
+        max_epochs=cfg.hyperparameters.num_epochs,
         log_every_n_steps=25,
     )
     with mlflow.start_run():
@@ -84,10 +73,14 @@ if __name__ == "__main__":
 
         mlflow.pytorch.log_model(
             pytorch_model=model,
-            artifact_path=MODEL_NAME,
-            conda_env=str(CONDA_PATH),
-            code_paths=[str(CODE_PATH)],
+            artifact_path=cfg.paths.artifact_path,
+            conda_env=cfg.paths.conda_path,
+            code_paths=[cfg.paths.code_path],
             signature=signature,
-            registered_model_name=MODEL_NAME,
+            registered_model_name=cfg.params.model_name,
             await_registration_for=0,
         )
+
+
+if __name__ == "__main__":
+    main()
