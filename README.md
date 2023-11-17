@@ -161,3 +161,23 @@ Run in src folder
 ```shell
 python -m pytest
 ```
+
+
+## Dev contaniner
+
+Ensure Docker is running
+
+Run the dev container
+
+Open a new terminal 
+
+```shell
+docker ps 
+docker exec -it <container_id>  /bin/bash
+conda activate genre-classification
+cd workspaces/Genre-Classification/
+```
+Install required packages
+```shell
+pip install packages
+```
