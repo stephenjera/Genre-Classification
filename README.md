@@ -172,12 +172,18 @@ Run the dev container
 Open a new terminal 
 
 ```shell
-docker ps 
+docker ps
+``` 
+```shell
 docker exec -it <container_id>  /bin/bash
+```
+```shell
 conda activate genre-classification
+```
+```shell
 cd workspaces/Genre-Classification/
 ```
 Install required packages
 ```shell
-pip install packages
+pip install <packages>
 ```
