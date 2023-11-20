@@ -1,0 +1,18 @@
+hyperparameters:
+  batch_size: 103
+  hidden_size: 128
+  input_size: 13
+  learning_rate: 0.015055596451230824
+  num_classes: 10
+  num_epochs: 53
+  num_layers: 2
+params:
+  model_name: genre-classifier
+  num_workers: 1
+  test_size: 0.2
+  validation_size: 0.25
+paths:
+  artifact_path: genre_classifier
+  code_path: ${hydra:runtime.cwd}/genre_classifier
+  conda_path: ${hydra:runtime.cwd}/../environment.yaml
+  dataset_path: ${hydra:runtime.cwd}/../data/processed/genres_mfccs.json

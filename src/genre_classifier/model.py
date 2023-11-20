@@ -10,7 +10,6 @@ from pathlib import Path
 from sklearn.model_selection import train_test_split
 
 
-# Dataset
 class MFCCDataset(Dataset):
     def __init__(self, X, y):
         self.X = X
@@ -52,9 +51,7 @@ class MFCCDataModule(pl.LightningDataModule):
         with open(dataset_path, "r") as fp:
             print("Loading Data")
             data = json.load(fp)
-            # convert lists to numpy arrays
             X = np.array(data["mfcc"])
-            # X = np.array(data["spectrogram"])
             y = np.array(data["labels"])
             mappings = data["mappings"]
             return X, y, mappings
@@ -137,6 +134,9 @@ class LSTMGenreModel(pl.LightningModule):
             task="multiclass", num_classes=num_classes
         )
         self.f1_score = torchmetrics.F1Score(task="multiclass", num_classes=num_classes)
+        self.confusion_matrix = torchmetrics.ConfusionMatrix(
+            task="multiclass", num_classes=num_classes
+        )
 
     def forward(self, x):
         out, (hn, cn) = self.lstm(x)
@@ -167,14 +167,45 @@ class LSTMGenreModel(pl.LightningModule):
 
     def validation_step(self, batch):
         loss, outputs, labels = self._common_step(batch)
-        self.log("val_loss", loss)
-        return loss
+        accuracy = self.accuracy(outputs, labels)
+        f1_score = self.f1_score(outputs, labels)
+        self.confusion_matrix.update(outputs, labels)
+        self.log_dict(
+            {
+                "val_loss": loss,
+                "val_accuracy": accuracy,
+                "val_f1_score": f1_score,
+            },
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+        )
+        return {
+            "loss": loss,
+            "outputs": outputs,
+            "labels": labels,
+        }
 
     # Test step
     def test_step(self, batch):
         loss, outputs, labels = self._common_step(batch)
-        self.log("test_loss", loss)
-        return loss
+        accuracy = self.accuracy(outputs, labels)
+        f1_score = self.f1_score(outputs, labels)
+        self.log_dict(
+            {
+                "test_loss": loss,
+                "test_accuracy": accuracy,
+                "test_f1_score": f1_score,
+            },
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+        )
+        return {"loss": loss, "outputs": outputs, "labels": labels}
+
+    def on_test_epoch_end(self):
+        confusion_matrix = self.confusion_matrix.compute().detach().cpu().numpy()
+        print(confusion_matrix)
 
     def save_checkpoint(self, checkpoint_path, filename="checkpoint.ckpt"):
         torch.save(self.state_dict(), os.path.join(checkpoint_path, filename))

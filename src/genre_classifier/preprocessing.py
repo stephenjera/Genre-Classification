@@ -7,7 +7,7 @@ from math import ceil
 
 def save_mfcc(
     dataset_path: str | Path,
-    json_path: str,
+    json_path: str | Path,
     samples_per_track: int,
     n_mfcc=13,
     n_fft=2048,
@@ -50,7 +50,7 @@ def save_mfcc(
             dirpath_components = dirpath.split(os.sep)
             semantic_label = dirpath_components[-1]
             # Subtract 1 to skip the root folder
-            semantic_to_numeric[semantic_label] = i - 1
+            semantic_to_numeric[i - 1] = semantic_label
             print(f"\nProcessing {semantic_label}")
 
             # process files
