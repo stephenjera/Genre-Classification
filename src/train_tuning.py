@@ -58,7 +58,7 @@ def objective(trial):
         log_every_n_steps=25,
         callbacks=[
             optuna.integration.PyTorchLightningPruningCallback(
-                trial, monitor="val_loss"
+                trial, monitor="val_accuracy"
             ),
         ],
     )

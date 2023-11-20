@@ -47,14 +47,11 @@ class MFCCDataModule(pl.LightningDataModule):
             :param data_path (str): Path to json file containing data
             :return X (ndarray): Inputs
             :return y (ndarray): Targets
-            :return mappings: key value mappings of data
         """
         with open(dataset_path, "r") as fp:
             print("Loading Data")
             data = json.load(fp)
-            # convert lists to numpy arrays
             X = np.array(data["mfcc"])
-            # X = np.array(data["spectrogram"])
             y = np.array(data["labels"])
             mappings = data["mappings"]
             return X, y, mappings
