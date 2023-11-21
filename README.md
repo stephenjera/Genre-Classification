@@ -19,6 +19,16 @@ The [GTZAN Genre Collection](https://www.kaggle.com/datasets/andradaolteanu/gtza
 
 The raw .wav files are preprocessed to extract Mel-Frequency Cepstral Coefficients (MFCCs) which represent the short-term power spectrum of the audio.
 
+## Contents
+
+1. [Model](#model)
+1. [Tensorboard](#tensorboard)
+1. [DVC (Data Version Control)](#dvc)
+1. [Installing PyTorch](#installing-pytorch)
+1. [MLflow](#mlflow)
+1. [Pytest](#pytest)
+1. [Dev Container](#dev-container)
+
 ## Model
 
 A LSTM neural network implemented in PyTorch is used for sequence classification. The model architecture consists of:
@@ -30,6 +40,8 @@ A LSTM neural network implemented in PyTorch is used for sequence classification
 
 The MFCC audio features are fed into the LSTM layer, and the output is a predicted genre label.
 
+[Return to Top](#contents)
+
 ## Tensorboard
 
 The project uses Tensorboard to visualise some graphs to see these in the root directory run after code executuion then naviagte to localhos:6006 in a browser
@@ -37,6 +49,8 @@ The project uses Tensorboard to visualise some graphs to see these in the root d
 ```shell
 tensorboard --logdir=notebooks/runs
 ```
+
+[Return to Top](#contents)
 
 ## DVC
 
@@ -98,6 +112,8 @@ git pull origin master
 dvc pull -r origin
 ```
 
+[Return to Top](#contents)
+
 ## Installing Pytorch
 
 To create a conda enviornment install Anaconda. Open a new anaconda terminal and navigate to the root directory and run the following code:
@@ -134,6 +150,8 @@ and then remove the prefix section at the end
 
 CUDA version 11.8 was used, a tutorial on how to set up the CUDA toolkit can be found [here](https://www.youtube.com/watch?v=r7Am-ZGMef8)
 
+[Return to Top](#contents)
+
 ## MLflow
 
 Create local testing server
@@ -154,6 +172,8 @@ serve model from remote
 mlflow models serve -m "models:/genre-classifier/<version>" --port 1234 --no-conda
 ```
 
+[Return to Top](#contents)
+
 ## Pytest
 
 Run in src folder  
@@ -161,3 +181,43 @@ Run in src folder
 ```shell
 python -m pytest
 ```
+
+[Return to Top](#contents)
+
+## Dev Container
+
+Ensure Docker is running
+
+Run the dev container
+
+Open a new terminal
+
+```shell
+docker ps
+```
+
+```shell
+docker exec -it <container_id>  /bin/bash
+```
+
+Create Conda enviornment from scratch
+
+```shell
+conda create -n genre-classification python=3.10.11
+```
+
+```shell
+conda activate genre-classification
+```
+
+```shell
+cd workspaces/Genre-Classification/
+```
+
+Install required packages
+
+```shell
+pip install <packages>
+```
+
+[Return to Top](#contents)
