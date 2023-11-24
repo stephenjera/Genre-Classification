@@ -1,20 +1,49 @@
-# Create the model
 import pytorch_lightning as pl
 import mlflow
 import dagshub
 import torch
+import matplotlib.pyplot as plt
+import seaborn as sns
 import hydra
 from hydra.core.config_store import ConfigStore
 from config import GenreClassifierConfig
 from genre_classifier.model import LSTMGenreModel, MFCCDataModule
 from pathlib import Path
-from pytorch_lightning.loggers import TensorBoardLogger
-from pytorch_lightning.profilers import PyTorchProfiler
 from mlflow.models.signature import infer_signature
 
 
 cs = ConfigStore.instance()
 cs.store(name="genre_config", node=GenreClassifierConfig)
+
+
+def save_confusion_matrix(
+    model: LSTMGenreModel, mappings: dict[str, str], filename: str
+):
+    confusion_matrix = model.confusion_matrix.compute()
+    cm = confusion_matrix.detach().cpu().numpy()
+
+    _, ax = plt.subplots(figsize=(10, 10))
+
+    # Set tick labels from mappings
+    labels = [v for _, v in sorted(mappings.items(), key=lambda item: int(item[0]))]
+    sns.heatmap(
+        cm,
+        annot=True,
+        fmt="d",
+        cmap="Blues",
+        ax=ax,
+        xticklabels=labels,  # type: ignore
+        yticklabels=labels,  # type: ignore
+    )
+
+    plt.title("Genre Classifier Confusion Matrix")
+    plt.xlabel("Predicted")
+    plt.ylabel("True")
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
+
+    save_path = f"{filename}.png"
+    plt.savefig(save_path)
+    return save_path
 
 
 @hydra.main(config_path="config", config_name="config.yaml")
@@ -36,27 +65,14 @@ def main(cfg: GenreClassifierConfig):
         test_size=cfg.params.test_size,
     )
 
-    # dagshub.init(
-    #     repo_owner="stephenjera",
-    #     repo_name="Genre-Classification",
-    #     mlflow=True,
-    # )
-    mlflow.set_tracking_uri("http://localhost:5000")
+    dagshub.init(
+        repo_owner="stephenjera",
+        repo_name="Genre-Classification",
+        mlflow=True,
+    )
     mlflow.pytorch.autolog(log_models=False)
 
-    # logger = TensorBoardLogger("tb_runs")
-    #profiler = PyTorchProfiler(
-    #    on_trace_ready=torch.profiler.tensorboard_trace_handler("tb_runs/profiler0"),
-    #     schedule=torch.profiler.schedule(
-    #         skip_first=10,
-    #         wait=1,
-    #         warmup=1,
-    #         active=20,
-    #     ),
-    # )
     trainer = pl.Trainer(
-        # profiler=profiler,
-        # logger=logger,
         max_epochs=cfg.hyperparameters.num_epochs,
         log_every_n_steps=25,
     )
@@ -79,6 +95,12 @@ def main(cfg: GenreClassifierConfig):
             signature=signature,
             registered_model_name=cfg.params.model_name,
             await_registration_for=0,
+        )
+        _, _, mappings = dm.load_data(cfg.paths.dataset_path)
+        mlflow.log_artifact(
+            save_confusion_matrix(
+                model=model, mappings=mappings, filename="confusion_matrix"
+            )
         )
 
 
