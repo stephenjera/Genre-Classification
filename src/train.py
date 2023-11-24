@@ -45,15 +45,15 @@ def main(cfg: GenreClassifierConfig):
     mlflow.pytorch.autolog(log_models=False)
 
     # logger = TensorBoardLogger("tb_runs")
-    profiler = PyTorchProfiler(
-        on_trace_ready=torch.profiler.tensorboard_trace_handler("tb_runs/profiler0"),
-        schedule=torch.profiler.schedule(
-            skip_first=10,
-            wait=1,
-            warmup=1,
-            active=20,
-        ),
-    )
+    #profiler = PyTorchProfiler(
+    #    on_trace_ready=torch.profiler.tensorboard_trace_handler("tb_runs/profiler0"),
+    #     schedule=torch.profiler.schedule(
+    #         skip_first=10,
+    #         wait=1,
+    #         warmup=1,
+    #         active=20,
+    #     ),
+    # )
     trainer = pl.Trainer(
         # profiler=profiler,
         # logger=logger,
