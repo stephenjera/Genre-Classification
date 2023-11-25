@@ -56,6 +56,7 @@ dependencies:
   - icu=73.1=h6a678d5_0
   - idna=3.4=py310h06a4308_0
   - importlib-metadata=6.0.0=py310h06a4308_0
+  - iniconfig=1.1.1=pyhd3eb1b0_0
   - intel-openmp=2023.1.0=hdb19cb5_46306
   - itsdangerous=2.0.1=pyhd3eb1b0_0
   - jinja2=3.1.2=py310h06a4308_0
@@ -126,6 +127,7 @@ dependencies:
   - pandas=2.1.1=py310h1128e8f_0
   - pillow=10.0.1=py310ha6cbd5a_0
   - pip=23.3.1=py310h06a4308_0
+  - pluggy=1.0.0=py310h06a4308_1
   - protobuf=3.20.3=py310h6a678d5_0
   - pyarrow=11.0.0=py310h468efa6_1
   - pycparser=2.21=pyhd3eb1b0_0
@@ -133,6 +135,7 @@ dependencies:
   - pyopenssl=23.2.0=py310h06a4308_0
   - pyparsing=3.0.9=py310h06a4308_0
   - pysocks=1.7.1=py310h06a4308_0
+  - pytest=7.4.0=py310h06a4308_0
   - python=3.10.11=h955ad1f_3
   - python-dateutil=2.8.2=pyhd3eb1b0_0
   - python-tzdata=2023.3=pyhd3eb1b0_0
@@ -158,6 +161,7 @@ dependencies:
   - tbb=2021.8.0=hdb19cb5_0
   - threadpoolctl=2.2.0=pyh0d69192_0
   - tk=8.6.12=h1ccaba5_0
+  - tomli=2.0.1=py310h06a4308_0
   - torchaudio=2.1.1=py310_cpu
   - torchvision=0.16.1=py310_cpu
   - typing-extensions=4.7.1=py310h06a4308_0
