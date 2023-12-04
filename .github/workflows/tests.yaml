@@ -13,9 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: stephenjera/genre-classification:latest
+      options: --privileged
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Run tests
         run: |
           zsh -c "
