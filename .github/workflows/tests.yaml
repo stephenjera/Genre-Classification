@@ -14,6 +14,9 @@ jobs:
     container:
       image: stephenjera/genre-classification:latest
       options: --privileged
+      volumes:
+        - tmp:/tmp
+        - var_tmp:/var/tmp
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
