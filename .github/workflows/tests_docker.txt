@@ -1,0 +1,33 @@
+name: pytest
+
+on:
+  push:
+    branches:
+      # - stephen-dev
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    container:
+      image: stephenjera/genre-classification:latest
+      options: --privileged
+      volumes:
+        - tmp:/tmp
+        - var_tmp:/var/tmp
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run tests
+        run: |
+          zsh -c "
+            cd src
+            source ~/.zshrc
+            conda activate genre-classification
+            python -m pytest --ignore-glob='*save_mfcc.py'
+          "
+
+
+
