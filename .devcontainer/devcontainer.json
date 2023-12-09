@@ -1,11 +1,8 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/miniconda
 {
-  "name": "Miniconda (Python 3)",
-  "build": {
-    "context": "..",
-    "dockerfile": "Dockerfile"
-  },
+  "name": "Genre Classification",
+  "image": "stephenjera/genre-classification",
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   // "features": {},
@@ -14,7 +11,7 @@
   // "forwardPorts": [],
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "bash -c 'conda init bash && source ~/.bashrc' && zsh -c 'conda init zsh && source ~/.zshrc'",
+  // "postCreateCommand": "bash -c 'conda init bash && source ~/.bashrc' && zsh -c 'conda init zsh && source ~/.zshrc'",
 
   // Configure tool-specific properties.
   "customizations": {
@@ -26,10 +23,18 @@
         "ms-python.pylint",
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "ms-toolsai.vscode-jupyter-cell-tags"
+        "ms-toolsai.vscode-jupyter-cell-tags",
+        "tamasfe.even-better-toml",
+        "ms-python.isort",
+        "njpwerner.autodocstring",
+        "ms-azuretools.vscode-docker",
+        "github.vscode-github-actions",
+        "eamodio.gitlens",
+        "redhat.vscode-yaml"
       ]
     }
-  }
+  },
+  "runArgs": [ "--gpus", "all" ]
 
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
   // "remoteUser": "root"

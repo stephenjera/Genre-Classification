@@ -1,0 +1,39 @@
+name: pytest
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+
+      - name: Install virtualenv
+        run: |
+          pip install virtualenv
+
+      - name: Create virtualenv
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+
+      - name: Install dependencies
+        env:
+          ACTIONS_STEP_DEBUG: true
+        run: |
+          pip install -r testing_requirements.txt
+
+      - name: Run tests
+        env:
+          ACTIONS_STEP_DEBUG: true
+        run: |
+          cd src
+          python -m pytest --verbose --ignore-glob='*save_mfcc.py'
