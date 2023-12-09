@@ -1,8 +1,6 @@
 name: pytest
 
 on:
-  push:
-    branches: [stephen-dev]
   pull_request:
     branches: [main]
 
