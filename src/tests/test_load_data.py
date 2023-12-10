@@ -1,7 +1,9 @@
-import os
-import pytest
-import numpy.testing as npt
 import json
+import os
+
+import numpy.testing as npt
+import pytest
+
 from genre_classifier.model import MFCCDataModule
 
 

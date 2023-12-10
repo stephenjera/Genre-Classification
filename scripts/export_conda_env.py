@@ -1,11 +1,14 @@
 import os
-import chardet
 from typing import TypedDict
+
+import chardet
+
 
 class EncodingResult(TypedDict):
     encoding: str | None
     confidence: float
     language: str | None
+
 
 def export_conda_env(path: str) -> None:
     """Exports the current conda environment to a YAML file."""
@@ -36,6 +39,6 @@ def convert_to_utf8(file_path: str, encoding: str | None) -> None:
 if __name__ == "__main__":
     file_path = "../.devcontainer/environment.yaml"
     export_conda_env(path=file_path)
-    encoding: str | None= check_encoding(file_path=file_path)
+    encoding: str | None = check_encoding(file_path=file_path)
     print(f"The encoding of {file_path} is {encoding}.")
     convert_to_utf8(file_path=file_path, encoding=encoding)

@@ -1,16 +1,17 @@
-import pytorch_lightning as pl
-import mlflow
-import dagshub
-import torch
-import matplotlib.pyplot as plt
-import seaborn as sns
-import hydra
-from hydra.core.config_store import ConfigStore
-from config import GenreClassifierConfig
-from genre_classifier.model import LSTMGenreModel, MFCCDataModule
 from pathlib import Path
+
+import dagshub
+import hydra
+import matplotlib.pyplot as plt
+import mlflow
+import pytorch_lightning as pl
+import seaborn as sns
+import torch
+from hydra.core.config_store import ConfigStore
 from mlflow.models.signature import infer_signature
 
+from config import GenreClassifierConfig
+from genre_classifier.model import LSTMGenreModel, MFCCDataModule
 
 cs = ConfigStore.instance()
 cs.store(name="genre_config", node=GenreClassifierConfig)
