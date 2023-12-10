@@ -1,8 +1,10 @@
-import os
 import json
-import pytest
+import os
 import shutil
 from pathlib import Path
+
+import pytest
+
 from genre_classifier.preprocessing import save_mfcc
 
 

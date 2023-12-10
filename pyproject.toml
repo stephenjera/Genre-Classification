@@ -1,0 +1,44 @@
+[tool.poetry]
+name = "genre-classification"
+version = "0.1.0"
+description = ""
+authors = ["stephenjera"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pytest = "^7.4.3"
+torch = "^2.1.1"
+numpy = "^1.26.2"
+pytorch-lightning = "^2.1.2"
+scikit-learn = "^1.3.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pylint]
+disable = [
+    "C0111", # missing-docstring
+    "C0103", # invalid-name
+]
+ignore = ["migrations"]
+load-plugins = ["pylint_django"]
+django-settings-module = "myproject.settings"
+
+[tool.mypy]
+files = ["src", "scripts"]      # specify files/folders to type check
+exclude = ["legacy"]            # exclude files/folders 
+strict = true
+check_untyped_defs = true       # check for type annot. on functions
+no_implicit_reexport = true     # ensure exported sym have type stubs
+disallow_any_generics = true    # disallow generic types of Any 
+disallow_subclassing_any = true # disallow subclassing values of type Any
+ignore_missing_imports = true
+
+[tool.pyright]
+reportMissingImports = true
+reportMissingTypeStubs = false
+reportUnknownVariableType = "none"
+reportUnknownMemberType = "none"

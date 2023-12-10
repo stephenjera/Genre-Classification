@@ -1,10 +1,11 @@
 # Create the model
-import pytorch_lightning as pl
-import yaml
-import optuna
-from genre_classifier.model import LSTMGenreModel, MFCCDataModule
 from pathlib import Path
 
+import optuna
+import pytorch_lightning as pl
+import yaml
+
+from genre_classifier.model import LSTMGenreModel, MFCCDataModule
 
 # Hyperparameters
 NUM_CLASSES = 10  # number of genres
