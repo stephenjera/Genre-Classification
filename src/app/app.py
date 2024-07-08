@@ -1,12 +1,11 @@
-import json
+import logging
 import os
-# Import your preprocessing function
 import sys
 import tempfile
 from pathlib import Path
-from typing import Union
 
 import dagshub
+import magic
 import mlflow
 import torch
 import uvicorn
@@ -15,21 +14,51 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from starlette.templating import _TemplateResponse
 
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+import shutil
+from datetime import datetime
+
 sys.path.append(str(Path.cwd().parent))
 from genre_classifier.model import MFCCDataModule
 from genre_classifier.preprocessing import save_mfcc
 
+STORAGE_DIR = Path.cwd() / "uploaded_files"
+STORAGE_DIR.mkdir(exist_ok=True)
+
+Base = declarative_base()
+engine = create_engine('sqlite:///uploaded_files.db')
+Session = sessionmaker(bind=engine)
+
+class UploadedFile(Base):
+    __tablename__ = 'uploaded_files'
+    id = Column(Integer, primary_key=True)
+    filename = Column(String)
+    predicted_genre = Column(String)
+    timestamp = Column(String)
+    file_path = Column(String)
+
+Base.metadata.create_all(engine)
+
+
 app = FastAPI()
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("Genre Classifier")
 
 # Set up Jinja2 templates
 templates = Jinja2Templates(directory="templates")
 
-# Get the current directory
 TEMP_DIR = Path.cwd() / "temp"
-TEMP_DIR.mkdir(exist_ok=True)  # Create the temp directory if it doesn't exist
+TEMP_DIR.mkdir(exist_ok=True)
 
-# Load your ML model here
-os.environ["MLFLOW_TRACKING_URI"] = "https://dagshub.com/stephenjera/Genre-Classification.mlflow"
+# Load ML model here
+os.environ["MLFLOW_TRACKING_URI"] = (
+    "https://dagshub.com/stephenjera/Genre-Classification.mlflow"
+)
 dagshub.init(
     repo_owner="stephenjera",
     repo_name="Genre-Classification",
@@ -39,21 +68,28 @@ dagshub.init(
 model_uri = "models:/genre-classifier/8"
 loaded_model = mlflow.pytorch.load_model(model_uri)
 
+# Configuration
+MFCC_CONFIG = {
+    "samples_per_track": 22050,
+    "n_mfcc": 13,
+    "n_fft": 2048,
+    "hop_length": 512,
+    "num_segments": 1,
+}
+
 mappings = {
-        "0": "blues",
-        "1": "classical",
-        "2": "country",
-        "3": "disco",
-        "4": "hiphop",
-        "5": "jazz",
-        "6": "metal",
-        "7": "pop",
-        "8": "reggae",
-        "9": "rock"
-    }
+    "0": "blues",
+    "1": "classical",
+    "2": "country",
+    "3": "disco",
+    "4": "hiphop",
+    "5": "jazz",
+    "6": "metal",
+    "7": "pop",
+    "8": "reggae",
+    "9": "rock",
+}
 
-
-print(TEMP_DIR)
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request) -> _TemplateResponse:
@@ -62,58 +98,57 @@ async def home(request: Request) -> _TemplateResponse:
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)) -> JSONResponse:
+    # Check file type
+    file_content = await file.read()
+    file_type = magic.from_buffer(file_content, mime=True)
+    logger.info(f"File type: {file_type}")
+    if not file_type.startswith('audio/'):
+        return JSONResponse(content={"error": "Invalid file type"}, status_code=400)
 
-    temp_dir = tempfile.mkdtemp(dir=TEMP_DIR)
-    try:
-        # Create a temporary directory to store the uploaded file
-        # with tempfile.TemporaryDirectory(dir=TEMP_DIR) as temp_dir:
-        temp_file_path = Path(temp_dir) / file.filename # type: ignore
-        temp_json_path = Path(temp_dir) / "mfcc_data.json"
-        print(f"uploaded file: {file.filename}")
-        print(f"temp_file_path: {temp_file_path}")
+    with tempfile.TemporaryDirectory(dir=TEMP_DIR) as temp_dir:
+        try:
+            # Create a temporary directory to store the uploaded file
+            #temp_dir = tempfile.mkdtemp(dir=TEMP_DIR) # for debugging
+            temp_file_path = Path(temp_dir) / file.filename  # type: ignore
+            temp_json_path = Path(temp_dir) / "mfcc_data.json"
+            logger.info(f"uploaded file: {file.filename}")
+            logger.info(f"temp_file_path: {temp_file_path}")
 
-        # Save the uploaded file
-        with temp_file_path.open("wb") as buffer:
-            buffer.write(await file.read())
+            # Save the uploaded file
+            with temp_file_path.open("wb") as buffer:
+                # buffer.write(await file.read())
+                buffer.write(file_content)
 
-        # Create a temporary JSON file to store the MFCC data
-        # temp_json_path = Path(temp_dir) / "mfcc_data.json"
+            # Preprocess the audio file
+            save_mfcc(dataset_path=TEMP_DIR, json_path=temp_json_path, **MFCC_CONFIG)
 
-        # Preprocess the audio file
-        save_mfcc(
-            dataset_path=TEMP_DIR,
-            json_path=temp_json_path,
-            samples_per_track=22050,  # Assuming 30-second clips at 22050 Hz
-            n_mfcc=13,
-            n_fft=2048,
-            hop_length=512,
-            num_segments=1,
-        )
+            # Make prediction
+            X, _, _ = MFCCDataModule.load_data(temp_json_path)
+            X2 = torch.tensor(X, dtype=torch.float32).clone().detach()
+            predictions = loaded_model.predict_step(X2)
 
-        # Load the preprocessed data
-        # with temp_json_path.open() as f:
-        #     mfcc_data = json.load(f)
+            predicted_class_index = predictions.argmax().item()
+            predicted_genre = mappings[str(predicted_class_index)]
 
-        # Make prediction
-        # Assuming your model expects the MFCC data in a specific format
-        # You may need to adjust this part based on your model's requirements
-        X, y, _ = MFCCDataModule.load_data(temp_json_path)
-        X2 = torch.tensor(X, dtype=torch.float32).clone().detach()
-        prediction = loaded_model.predict_step(X2[:1])
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            save_filename = f"{timestamp}_{file.filename}"
+            save_path = STORAGE_DIR / save_filename
+            shutil.copy(temp_file_path, save_path)
 
-        predicted_class_index = prediction.argmax().item()
-        print(
-            f"prediction:{predicted_class_index}, {mappings[str(predicted_class_index)]} Actual {y[0]}, {mappings[str(y[0])]}"
-        )
+            session = Session()
+            new_file = UploadedFile(filename=file.filename, 
+                                    predicted_genre=predicted_genre,
+                                    timestamp=timestamp,
+                                    file_path=str(save_path))
+            session.add(new_file)
+            session.commit()
 
-        # For now, we'll return a placeholder prediction
-        prediction = "Placeholder prediction"
-        prediction = mappings[str(predicted_class_index)]
+            logger.info(f"Predicted: {predicted_genre}")
+            return JSONResponse(content={"prediction": predicted_genre})
 
-        return JSONResponse(content={"prediction": prediction})
-
-    except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=400)
+        except Exception as e:
+            logger.error(f"Error during prediction: {str(e)}", exc_info=True)
+            return JSONResponse(content={"error": str(e)}, status_code=400)
 
 
 if __name__ == "__main__":
