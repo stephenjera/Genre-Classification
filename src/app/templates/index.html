@@ -3,34 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Prediction</title>
+    <meta name="description" content="Audio genre prediction application">
+    <title>Audio Genre Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+        .error {
+            color: red;
+        }
+    </style>
 </head>
 <body>
-    <h1>Audio Prediction</h1>
-    <form action="/predict" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept="audio/*">
-        <button type="submit">Predict</button>
+    <h1>Audio Genre Prediction</h1>
+    <form id="predictionForm">
+        <label for="audioFile">Select an audio file:</label>
+        <input type="file" id="audioFile" name="file" accept="audio/*" required>
+        <button type="submit">Predict Genre</button>
     </form>
-    <div id="result"></div>
+    <div id="result" aria-live="polite"></div>
 
     <script>
-        const form = document.querySelector('form');
-        const resultDiv = document.getElementById('result');
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('predictionForm');
+            const resultDiv = document.getElementById('result');
+            const fileInput = document.getElementById('audioFile');
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(form);
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
 
-            try {
-                const response = await fetch('/predict', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-                resultDiv.textContent = `Prediction: ${data.prediction}`;
-            } catch (error) {
-                resultDiv.textContent = `Error: ${error.message}`;
-            }
+                // Clear previous results
+                resultDiv.textContent = 'Processing...';
+                resultDiv.className = '';
+
+                try {
+                    // Validate file input
+                    if (!fileInput.files.length) {
+                        throw new Error('Please select an audio file.');
+                    }
+
+                    const response = await fetch('/predict', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    resultDiv.textContent = `Predicted Genre: ${data.prediction}`;
+                } catch (error) {
+                    resultDiv.textContent = `Error: ${error.message}`;
+                    resultDiv.className = 'error';
+                    console.error('Prediction error:', error);
+                }
+            });
         });
     </script>
 </body>
