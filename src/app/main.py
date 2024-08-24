@@ -26,7 +26,7 @@ from genre_classifier.preprocessing import save_mfcc
 
 # Initialize app and config
 app = FastAPI()
-config = AppConfig()
+config = AppConfig.get_instance()
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -123,8 +123,8 @@ async def process_file(file: UploadFile, db: Session) -> str:
 async def save_file(
     file: UploadFile, temp_file_path: str | Path, predicted_genre: str, db: Session
 ) -> None:
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    save_filename = f"{timestamp}_{file.filename}"
+    timestamp = datetime.now()
+    save_filename = f"{timestamp.strftime('%Y%m%d_%H%M%S')}_{file.filename}"
     save_path = config.STORAGE_DIR / save_filename
     shutil.copy(src=temp_file_path, dst=save_path)
 

@@ -1,11 +1,14 @@
 # Configuration
 import os
 from pathlib import Path
+import dagshub
 
 
 class AppConfig:
+    _instance = None
+
     # Directories
-    BASE_DIR = Path.cwd() #Path(__file__).resolve().parent
+    BASE_DIR = Path.cwd()  # Path(__file__).resolve().parent
     STORAGE_DIR = BASE_DIR / "uploaded_files"
     TEMP_DIR = BASE_DIR / "temp"
 
@@ -47,33 +50,15 @@ class AppConfig:
     HOST = os.getenv("HOST", "0.0.0.0")
     PORT = int(os.getenv("PORT", 8000))
 
-    # Database
-    DATABASE_URL = "sqlite:///./sql_app.db"
-
     # MLflow
     MLFLOW_TRACKING_URI = "https://dagshub.com/stephenjera/Genre-Classification.mlflow"
 
-    def __init__(self):
+    def __init__(self) -> None:
         os.environ["MLFLOW_TRACKING_URI"] = self.MLFLOW_TRACKING_URI
+   
 
-
-MFCC_CONFIG: dict[str, int] = {
-    "samples_per_track": 22050,
-    "n_mfcc": 13,
-    "n_fft": 2048,
-    "hop_length": 512,
-    "num_segments": 1,
-}
-
-mappings: dict[str, str] = {
-    "0": "blues",
-    "1": "classical",
-    "2": "country",
-    "3": "disco",
-    "4": "hiphop",
-    "5": "jazz",
-    "6": "metal",
-    "7": "pop",
-    "8": "reggae",
-    "9": "rock",
-}
+    @staticmethod
+    def get_instance() -> "AppConfig":
+        if AppConfig._instance is None:
+            AppConfig._instance = AppConfig()
+        return AppConfig._instance

@@ -17,14 +17,17 @@
 #     file_path = Column(String)
 
 
-from config_file import AppConfig
+# from config_file import AppConfig
 from sqlalchemy import Column, DateTime, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-config = AppConfig()
+ # Database
+DATABASE_URL = "sqlite:///./genre_app.db"
 
-engine = create_engine(config.DATABASE_URL, connect_args={"check_same_thread": False})
+# config = AppConfig()
+
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
@@ -38,4 +41,4 @@ class UploadedFile(Base):
     timestamp = Column(DateTime)
     file_path = Column(String)
 
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
